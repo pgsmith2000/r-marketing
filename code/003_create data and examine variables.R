@@ -106,3 +106,175 @@ p1.table2 <- table(store.df$p1price, store.df$p1prom)
 
 # divide the second column by the sum of the first and second columns
 p1.table2[, 2]/(p1.table2[, 1] + p1.table2[, 2])
+
+# min and max store sales
+min(store.df$p1sales)
+max(store.df$p1sales)
+mean(store.df$p1sales)
+var(store.df$p1sales)
+sd(store.df$p1sales)
+IQR(store.df$p1sales)   # interquartile range
+mad(store.df$p1sales)   # median absolute deviation
+quantile(store.df$p1sales, probs=c(0.25, 0.5, 0.75))
+quantile(store.df$p1sales, probs=c(0.05, 0.95))
+
+quantile(store.df$p1sales, probs=0:10/10) # probs=c(0, 1/10, 2/20, ...)
+
+# create a summary of sales for prod 1 and 2 based on median and IQR
+mysummary.df <- data.frame((matrix(NA, nrow=2, ncol=2)))
+names(mysummary.df) <- c("Median Sales", "IQR")
+rownames(mysummary.df) <- c("Product 1", "Product 2")
+
+mysummary.df["Product 1", "Median Sales"] <- median(store.df$p1sales)
+mysummary.df["Product 2", "Median Sales"] <- median(store.df$p2sales)
+
+mysummary.df["Product 1", "IQR"] <- IQR(store.df$p1sales)
+mysummary.df["Product 2", "IQR"] <- IQR(store.df$p2sales)
+
+mysummary.df  # median sales higher and more variation for product 1
+
+library(psych)
+describe(store.df)  # note * on output for storeNum and country
+
+# repeat describe excluding these
+describe(store.df[, c(2, 4:9)])
+
+# Good practice to load data and convert it to data.frame
+# examin dim(); use head and tail to check first few/last few rows
+# use some() from car to randomly select rows
+# check data.frame structure with str(); esp look for vars that should be factors
+# run summary()
+# run describe() from psych; note n is same, check trimmed mean and skew (for outliers)
+
+# now check means of columns 2 through 9 (MARGIN=1 - rows; MARGIN=2 - columns)
+apply(store.df[, 2:9], MARGIN=2, FUN=mean)
+
+# find sum()
+apply(store.df[, 2:9], MARGIN=2, FUN=sum)
+
+# or sd()
+apply(store.df[, 2:9], MARGIN=2, FUN=sd)
+
+# want to find difference between mean and meadian for each column (to look for skew)
+# note the large + value for p1sales and p2sales suggests a right-hand skew
+apply(store.df[, 2:9], MARGIN=2, function(x) {mean(x)-median(x)})
+
+# look at histogram to confirm
+hist(store.df$p1sales)
+hist(store.df$p2sales)
+
+# clean it up a bit
+hist(store.df$p1sales,
+     main="Product 1 Weekly Sales Frequencies, All Stores",
+     xlab="Product 1 Sales (units)",
+     ylab="Count")
+
+# add more columns (breaks or bins) and color the bars
+hist(store.df$p1sales,
+     main="Product 1 Weekly Sales Frequencies, All Stores",
+     xlab="Product 1 Sales (units)",
+     ylab="Count",
+     breaks=30,
+     col="lightblue")
+
+# use density instead of counts on y, and remove the x-axis
+hist(store.df$p1sales,
+     main="Product 1 Weekly Sales Frequencies, All Stores",
+     xlab="Product 1 Sales (units)",
+     ylab="Relative Frequency",
+     breaks=30,
+     col="lightblue",
+     freq = FALSE,         # plot density instead of counts
+     )             # means set x-axis tick marks == no
+
+# use density instead of counts on y, and remove the x-axis
+hist(store.df$p1sales,
+     main="Product 1 Weekly Sales Frequencies, All Stores",
+     xlab="Product 1 Sales (units)",
+     ylab="Relative Frequency",
+     breaks=30,
+     col="lightblue",
+     freq = FALSE, 
+     xaxt="n",
+     ) 
+
+axis(side=1, at=seq (60 , 300 , by =20))    # add "60" , "80" , ...)
+
+lines(density(store.df$p1sales , bw =10) , # "bw = ..." adjusts the smoothing
+      type="l" , col="darkred" , lwd =2) # lwd = line width
+
+# a boxplot of p2sales for all store
+boxplot(store.df$p2sales , 
+        xlab="Weekly sales" , 
+        ylab="P2",
+        main="Weekly sales of P2 , All stores", 
+        horizontal=TRUE)
+
+# a separate boxplot for each store
+boxplot(store.df$p2sales ~ store.df$storeNum, 
+        horizontal=TRUE,
+        ylab="Store", 
+        xlab="Weekly unit sales", 
+        las=1,                                  # las=1 forces axis text to horizontal
+        main="Weekly Sales of P2 by Store")
+
+# using data= can make variables easier to enter
+# promotion makes a difference!
+boxplot(p2sales ~ p2prom, data=store.df , 
+        horizontal=TRUE, 
+        yaxt="n",
+        ylab="P2 promoted in store?", 
+        xlab="Weekly sales",
+        main="Weekly sales of P2 with and without promotion")
+
+axis(side=2, at=c(1,2) , labels=c("No", "Yes"))
+
+# beanplots
+library(beanplot)
+beanplot(p2sales ~ p2prom , data=store.df , horizontal=TRUE , yaxt="n",
+         what=c(0,1,1,0) , log="" , side="second",
+         ylab="P2 promoted in store?" , xlab="Weekly sales",
+         main="Weekly sales of P2 with and without promotion")
+
+axis(side=2, at=c(1,2) , labels=c("No", "Yes"))
+
+# QQ Plot to check normality
+
+# first compare data to a normal distribution
+qqnorm(store.df$p1sales)
+# then add normal line to plot
+# note the upward skew (deviation from normality)
+qqline(store.df$p1sales)
+
+# try same after transforming the data
+qqnorm(log(store.df$p1sales))
+qqline(log(store.df$p1sales))
+
+# empirical cumulative distribution function (ecdf)
+# shows the cumulative proportion of data values in your sample
+ecdf(store.df$p1sales)
+
+# now plot it
+plot(ecdf(store.df$p1sales),
+     main="Cumulative distribution of P1 Weekly Sales",
+     ylab="Cumulative proportion",
+     xlab=c("P1 weekly sales, all stores", 
+            "90% of weeks sold <= 171 units"),
+     yaxt="no")
+
+# add custom y-axis
+axis(side=2, at=seq(0, 1, by =0.1) , las=1,
+     labels=paste(seq(0,100,by =10) , "%" , sep=""))
+
+# Where would 90% of sales occur - the 90th percentile of P1 weekly sales
+# add horizontal dotted line at 90%
+abline(h=0.9 , lty =3) # "h=" for horizontal line ; " lty =3" for dotted
+
+# add a vertical dotted line at the 90th percentile
+abline(v=quantile(store.df$p1sales , pr =0.9) , lty =3) # "v=" vertical line
+
+# Note on chart above: Cumulative distribution plot with lines to 
+# emphasize the 90th percentile. The chart identifies that 90% of weekly 
+# sales are lower than or equal to 171 units. Other values are easy to 
+# read off the chart. For instance, roughly 10% of weeks sell less than 
+# 100 units, and fewer than than 5% sell more than 200 units
