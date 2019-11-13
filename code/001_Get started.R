@@ -298,3 +298,15 @@ if (FALSE) {
 }
 
 
+Months <- c("Jan","Feb","Mar","Apr","May","Jun",
+            "Jul","Aug","Sep","Oct","Nov","Dec")
+Summer <- c(6.7,7.3,8.2)
+
+Months
+Summer
+Months[Summer]
+Summer*3
+Months[Summer*3]
+mean(Summer)
+ceiling(Summer)
+?floor
